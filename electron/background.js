@@ -2,7 +2,7 @@ import ipcControl from './ipcMain';
 import {
     createProtocol
 } from 'vue-cli-plugin-electron-builder/lib';
-import Econfig from './electron.config';
+import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const {app, BrowserWindow, protocol} =require('electron');// 引入electron
@@ -23,9 +23,11 @@ let windowConfig = {
     height:600,
     resizable: false,
     frame: false,
-    // transparent: true,
+    transparent: true,
     webPreferences: {
-        nodeIntegration: true
+        nodeIntegration: true,
+        contextIsolation: false,
+        experimentalFeatures: true
     }
 };
 
@@ -51,18 +53,14 @@ function createWindow(){
         win.reload();
     });
 }
-app.on('ready',async ()=>{
+function loadVueDevTool() {
     if (isDevelopment) {
-        // Install Vue Devtools
-        try {
-            let path = Econfig.vuedevtool;
-            BrowserWindow.addDevToolsExtension(path);
-        } catch (e) {
-            console.error('Vue Devtools failed to install:', e.toString())
-        }
+        return installExtension(VUEJS_DEVTOOLS)
+            .then((name) => console.log(`Added Extension:  ${name}`))
+            .catch((err) => console.log('An error occurred: ', err));
     }
-    createWindow();
-});
+}
+app.whenReady().then(createWindow).then(loadVueDevTool);
 app.on('window-all-closed',() => {
     app.quit();
 });
